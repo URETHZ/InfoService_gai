@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Shapes
+import Project_GAI_information_system
 
 Page {
     id: authFrame
@@ -9,6 +10,10 @@ Page {
         mainFrame.title = "АИС ГАИ - Авторизация"
         mainFrame.minimumHeight = 400
         mainFrame.minimumWidth = 350
+    }
+
+    Authorization {
+        id: auth
     }
 
     RowLayout {
@@ -207,10 +212,12 @@ Page {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        visible: false
+                        spacing: 5
 
                         Text {
-                            text: "Неверный пароль."
+                            id: errorLabel
+                            visible: false
+                            text: ""
                             color: "#a62828"
                             font.pixelSize: 16
                             Layout.alignment: Qt.AlignRight
@@ -219,6 +226,7 @@ Page {
 
                         Text {
                             id: forgotPasswordLink
+                            visible: false
                             text: "Восстановить"
                             color: mouseArea.containsMouse ? "#001847" : "#808080"
                             font.pixelSize: 16
@@ -235,14 +243,13 @@ Page {
                                 cursorShape: Qt.PointingHandCursor
 
                                 onClicked: {
-                                    console.log("Переход на форму восстановления пароля")
                                     // Здесь будет логика: mainStack.push("ForgotPassword.qml")
                                 }
                             }
                         }
                     }
 
-                    RowLayout{
+                    RowLayout {
                         Layout.fillWidth: true
                         CheckBox {
                             id: showPassword
@@ -262,14 +269,19 @@ Page {
                 }
 
                 Button {
-                    text: "Войти"
+                    id: loginBtn
+                    property bool isProcessing: false
+                    text: isProcessing ? "Вход..." : "Войти"
                     Layout.preferredWidth: parent.tfWidht*0.7
                     Layout.preferredHeight: 45
                     Layout.alignment: Qt.AlignCenter
+                    enabled: !isProcessing
                     font.pixelSize: 18
 
+
+
                     background: Rectangle {
-                        color: parent.down ? "#0056b3" : "#229ED9"
+                        color: loginBtn.down ? "#0056b3" : (loginBtn.enabled ? "#229ED9" : "#2c2d30")
                         radius: 10
                     }
                     contentItem: Text {
@@ -280,7 +292,61 @@ Page {
                         verticalAlignment: Text.AlignVCenter
                     }
                     onClicked: {
+                        forgotPasswordLink.visible = false
+                        errorLabel.visible = false
+                        errorLabel.text = ""
 
+                        if (login.text.trim() === "") {
+                            errorLabel.text = "Введите логин."
+                            errorLabel.visible = true
+                            login.forceActiveFocus() // Ставим курсор в поле логина
+                            return
+                        }
+
+                        if (password.text === "") {
+                            errorLabel.text = "Введите пароль."
+                            errorLabel.visible = true
+                            forgotPasswordLink.visible = true
+                            password.forceActiveFocus()
+                            return
+                        }
+
+                        loginBtn.isProcessing = true
+
+                        loadingTimer.start()
+                    }
+                    Timer {
+
+                        id: loadingTimer
+                        interval: 1000
+                        repeat: false
+
+                        onTriggered: {
+                            loginBtn.isProcessing = false
+                            switch (auth.authorize(login.text, password.text))
+                            {
+                            case 0:
+                                mainStack.replace("General.qml")
+                                break
+                            case 1:
+                                errorLabel.text = "Неверный логин"
+                                errorLabel.visible = true
+                                break
+                            case 2:
+                                errorLabel.text = "Неверный пароль"
+                                errorLabel.visible = true
+                                forgotPasswordLink.visible = true
+                                break
+                            case 3:
+                                errorLabel.text = "Учетная запись заблокирована"
+                                errorLabel.visible = true
+                                break
+                            default:
+                                errorLabel.text = "Неизвестная ошибка авторизации"
+                                errorLabel.visible = true
+                                break
+                            }
+                        }
                     }
                 }
             }

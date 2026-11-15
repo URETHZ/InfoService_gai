@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Window {
+Page {
     id: window
     width: 700
     height: 500
@@ -11,4 +11,10 @@ Window {
     Component.onCompleted: {
             mainFrame.title = "АИС ГАИ - Главное меню"
         }
+    Rectangle {
+        anchors.centerIn: parent
+        Text {
+            text: "Победа!"
+        }
+    }
 }

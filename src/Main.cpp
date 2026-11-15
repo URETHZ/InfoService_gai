@@ -1,7 +1,7 @@
-
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QIcon>
+#include <QQmlContext>
 
 int main(int argc, char *argv[])
 {
