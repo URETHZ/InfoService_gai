@@ -14,6 +14,8 @@ Page {
 
     Authorization {
         id: auth
+        property string ip: "10.241.79.160"
+        property int port: 5432
     }
 
     RowLayout {
@@ -323,7 +325,7 @@ Page {
 
                         onTriggered: {
                             loginBtn.isProcessing = false
-                            switch (auth.authorize(login.text, password.text))
+                            switch (auth.authorize(login.text, password.text, auth.ip, auth.port))
                             {
                             case 0:
                                 mainStack.replace("General.qml")
@@ -339,6 +341,10 @@ Page {
                                 break
                             case 3:
                                 errorLabel.text = "Учетная запись заблокирована"
+                                errorLabel.visible = true
+                                break
+                            case 4:
+                                errorLabel.text = "Ошибка сервера"
                                 errorLabel.visible = true
                                 break
                             default:

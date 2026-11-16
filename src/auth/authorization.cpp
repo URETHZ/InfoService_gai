@@ -2,35 +2,50 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include "authorization.h"
-#include "argon2.h"
 #include "databaseController.h"
+#include "hexByArgon2.h"
 
-QString hashPassword(const QString& password) {
-    // случайная соль (16 байт)
-    QByteArray salt(16, 0);
-    QRandomGenerator::global()->generate(salt.begin(), salt.end());
-
-    // буфер для хеша (32 байт)
-    size_t hashLen = 32;
-    QByteArray hash(hashLen, 0);
-
-    argon2id_hash_raw(
-        3,              // t_cost (3 итерации)
-        1 << 16,        // m_cost (65536 КБ = 64 МБ памяти)
-        1,              // 1 поток
-        password.toUtf8().constData(), password.toUtf8().length(),
-        salt.constData(), salt.length(),
-        hash.data(), hashLen
-        );
-
-    // В БД нужно сохранить И хеш, И соль
-    return salt.toHex() + ":" + hash.toHex();
-}
-
-Q_INVOKABLE Authorization::AuthStatus Authorization::authorize(const QString &login, const QString &password, QString IP, int port)
+// Метод авторизации
+Q_INVOKABLE Authorization::AuthStatus Authorization::authorize(const QString &login, const QString &password, const QString &ip, int port)
 {
-    //DataBaseController(IP,port);
-    return Authorization::AuthStatus::OK;
+    // Создаем соединение с БД в системной роли
+    DataBaseController::instance().addDatabaseName("gai_app_role");
+    DataBaseController::instance().setConnectionParams("gai_app_role", "h4fr1sdpcg4s33", ip, port);
+    DataBaseController::instance().ConnectToDB("gai_app_role");
+    QSqlQuery query(DataBaseController::instance().getConnectionByName("gai_app_role"));
+
+    //Заполняем запрос
+    query.prepare("SELECT password FROM systemval.users WHERE \"username\" = :login");
+    query.bindValue(":login",login);
+
+    //Обрабатываем результат
+    if (query.exec()){
+        if (query.next())
+        {
+            QString dbStoredString = query.value(0).toString();
+
+            QStringList parts = dbStoredString.split(':');
+            if (parts.size() != 2) {
+                return Authorization::AuthStatus::UNKOWN_ERROR;
+            }
+
+            QString dbSalt = parts[0]; // Соль из базы
+            QString dbHash = parts[1]; // Эталонный хеш из базы
+            QString newHash = gethashPasswordbySalt(password, dbSalt);
+
+            if (newHash == dbHash) {
+                return Authorization::AuthStatus::OK;
+            }
+            return Authorization::AuthStatus::PASSWORD_INCORRECT;
+        }
+        else {
+            return Authorization::AuthStatus::LOGIN_NOT_FOUND;
+        }
+    }
+    else{
+        return Authorization::AuthStatus::SERVER_ERROR;
+    }
+
 }
 
 Q_INVOKABLE bool Authorization::haveRightsToModule(int moduleNumber)

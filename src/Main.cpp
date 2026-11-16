@@ -2,6 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <QIcon>
 #include <QQmlContext>
+#include "hexByArgon2.h"
+#include <qdebug.h>
 
 int main(int argc, char *argv[])
 {

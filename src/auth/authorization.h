@@ -15,7 +15,9 @@ public:
         OK = 0,
         LOGIN_NOT_FOUND = 1,
         PASSWORD_INCORRECT = 2,
-        BLOCKED = 3
+        BLOCKED = 3,
+        SERVER_ERROR= 4,
+        UNKOWN_ERROR = 5,
     };
     Q_ENUM(AuthStatus)
 
@@ -29,7 +31,7 @@ public:
 
     explicit Authorization(QObject *parent = nullptr) { }
 
-    Q_INVOKABLE AuthStatus authorize(const QString &login, const QString &password, QString IP = "localhost", int port = 5432);
+    Q_INVOKABLE AuthStatus authorize(const QString &login, const QString &password, const QString &ip = "localhost", int port = 5432);
 
     Q_INVOKABLE bool haveRightsToModule(int moduleNumber);
     Q_INVOKABLE bool isLogined() const { return !currentLogin.isEmpty(); }
