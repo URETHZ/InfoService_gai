@@ -29,12 +29,16 @@ public:
     };
     Q_ENUM(ModuleRight)
 
-    explicit Authorization(QObject *parent = nullptr) { }
+    explicit Authorization(QObject *parent = nullptr) {  }
 
-    Q_INVOKABLE AuthStatus authorize(const QString &login, const QString &password, const QString &ip = "localhost", int port = 5432);
+    Q_INVOKABLE AuthStatus authorize(const QString &login, const QString &password);
 
     Q_INVOKABLE bool haveRightsToModule(int moduleNumber);
+
     Q_INVOKABLE bool isLogined() const { return !currentLogin.isEmpty(); }
+// Сигналы QML о статусе подключения к БД
+signals:
+
 
 private:
     int currentUserId = -1;

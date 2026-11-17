@@ -6,14 +6,9 @@
 #include "hexByArgon2.h"
 
 // Метод авторизации
-Q_INVOKABLE Authorization::AuthStatus Authorization::authorize(const QString &login, const QString &password, const QString &ip, int port)
+Authorization::AuthStatus Authorization::authorize(const QString &login, const QString &password)
 {
-    // Создаем соединение с БД в системной роли
-    DataBaseController::instance().addDatabaseName("gai_app_role");
-    DataBaseController::instance().setConnectionParams("gai_app_role", "h4fr1sdpcg4s33", ip, port);
-    DataBaseController::instance().ConnectToDB("gai_app_role");
     QSqlQuery query(DataBaseController::instance().getConnectionByName("gai_app_role"));
-
     //Заполняем запрос
     query.prepare("SELECT password FROM systemval.users WHERE \"username\" = :login");
     query.bindValue(":login",login);
@@ -48,7 +43,7 @@ Q_INVOKABLE Authorization::AuthStatus Authorization::authorize(const QString &lo
 
 }
 
-Q_INVOKABLE bool Authorization::haveRightsToModule(int moduleNumber)
+bool Authorization::haveRightsToModule(int moduleNumber)
 {
     return true;
 }

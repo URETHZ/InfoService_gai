@@ -4,9 +4,10 @@ import QtQuick.Layouts
 import QtQuick.Shapes
 import Project_GAI_information_system
 
+// Страница авторизации
 Page {
     id: authFrame
-    Component.onCompleted: {
+    StackView.onActivating: {
         mainFrame.title = "АИС ГАИ - Авторизация"
         mainFrame.minimumHeight = 400
         mainFrame.minimumWidth = 350
@@ -17,7 +18,6 @@ Page {
         property string ip: "10.241.79.160"
         property int port: 5432
     }
-
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -106,10 +106,9 @@ Page {
                     NumberAnimation { from: 0.2; to: 0.6; duration: 5000; easing.type: Easing.InOutSine }
                 }
             }
-
             Image {
                 id: logoImage
-                source: "images/authFrameImage/i6.svg"
+                source: AppSettings.loginImagePath
                 width: parent.width * 0.8
                 height: width
                 fillMode: Image.PreserveAspectFit
@@ -150,14 +149,11 @@ Page {
                 }
             }
         }
-
-
         // ПРАВАЯ ЧАСТЬ
         Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
             color: '#1e1e24' // Темный фон
-
 
             ColumnLayout {
                 id:loginForm
@@ -257,6 +253,27 @@ Page {
                             id: showPassword
                             checked: true
                             text: "Скрыть пароль"
+
+                            indicator: Rectangle {
+                                    implicitWidth: 18
+                                    implicitHeight: 18
+                                    x: showPassword.leftPadding
+                                    y: (showPassword.height - height) / 2
+                                    radius: 4
+                                    color: "#2c2d30"
+                                    border.color: showPassword.checked ? "#229ED9" : "#4d4e4f"
+                                    border.width: 1
+
+                                    Rectangle {
+                                        anchors.centerIn: parent
+                                        width: 10
+                                        height: 10
+                                        radius: 2
+                                        color: "#229ED9"
+                                        visible: showPassword.checked
+                                    }
+                                }
+
                             contentItem: Text {
                                     text: showPassword.text
                                     color: "#808080"
@@ -325,7 +342,7 @@ Page {
 
                         onTriggered: {
                             loginBtn.isProcessing = false
-                            switch (auth.authorize(login.text, password.text, auth.ip, auth.port))
+                            switch (auth.authorize(login.text, password.text))
                             {
                             case 0:
                                 mainStack.replace("General.qml")
@@ -356,7 +373,6 @@ Page {
                     }
                 }
             }
-
 
             // Полоса сооцсетей
             Rectangle {
@@ -411,6 +427,40 @@ Page {
                         }
                     }
                 }
+            }
+        }
+    }
+    Item {
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.margins: 10
+        width: 35
+        height: 35
+
+        HoverHandler {
+            id: hoverSettings
+        }
+
+        Image {
+            id: settingsIcon
+            source: "images/icons/settings_icon.svg"
+            anchors.fill: parent
+            opacity: hoverSettings.hovered ? 1 : 0.7
+            fillMode: Image.PreserveAspectFit
+            scale: hoverSettings.hovered ? 1.1 : 1.0
+            Behavior on scale {
+                NumberAnimation { duration: 200; easing.type: Easing.OutBack }
+            }
+            Behavior on opacity {
+                NumberAnimation { duration: 200; easing.type: Easing.OutBack }
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                mainStack.push("SettingsAuthFrame.qml")
             }
         }
     }

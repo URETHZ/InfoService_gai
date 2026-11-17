@@ -4,7 +4,7 @@ project(Project_GAI_information_system VERSION 0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Sql)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Sql)
 
 qt_standard_project_setup(REQUIRES 6.10)
 
@@ -42,6 +42,8 @@ qt_add_qml_module(appProject_GAI_information_system
         src/auth/authorization.cpp
         src/auth/hexByArgon2.cpp
         src/auth/hexByArgon2.h
+        src/config/AppSettings.h
+        src/config/AppSettings.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -56,7 +58,7 @@ set_target_properties(appProject_GAI_information_system PROPERTIES
 )
 
 target_link_libraries(appProject_GAI_information_system
-    PRIVATE Qt6::Quick Qt6::Sql
+    PRIVATE Qt6::Quick Qt6::Sql Qt6::QuickControls2
 )
 
 # исходники Argon2
@@ -65,9 +67,9 @@ target_sources(appProject_GAI_information_system PRIVATE
     thirdparty/argon2/src/core.c
     thirdparty/argon2/src/encoding.c
     thirdparty/argon2/src/ref.c
-#    thirdparty/argon2/src/opt.c
     thirdparty/argon2/src/thread.c
     thirdparty/argon2/src/blake2/blake2b.c
+    thirdparty/argon2/include/argon2.h
 )
 
 target_include_directories(appProject_GAI_information_system PRIVATE
@@ -78,6 +80,7 @@ target_include_directories(appProject_GAI_information_system PRIVATE
     src/server
     src/lib
     src/parse
+    src/config
 )
 
 install(TARGETS appProject_GAI_information_system

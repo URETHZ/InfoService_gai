@@ -14,15 +14,18 @@ public:
 
     // Метод для установки параметров
     bool setConnectionParams(const QString &user, const QString &pass,
-                             const QString &ip = "localhost", int port= 5432);
+                             const QString &ip, int port);
 
-    // Подключение к бд
+    // Подключение к БД
     bool ConnectToDB(const QString &user);
+
+    // Установка параметров и подключение к БД
+    bool setNamedConnection(const QString &user, const QString &userPswd, const QString &ip = "localhost", int port = 5432);
 
     // Получение базы данных
     QSqlDatabase getConnectionByName(const QString &user);
 
-    void closeConnectionByName(const QString &user) { connections.value(getConnNameByUsername(user)).close(); }
+    void closeConnectionByName(const QString &user);
     bool isOpenConnection(const QString &user) { return connections.value(getConnNameByUsername(user)).isOpen(); }
     QString getConnNameByUsername(const QString &user);
 

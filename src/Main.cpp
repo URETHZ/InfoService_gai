@@ -2,12 +2,13 @@
 #include <QQmlApplicationEngine>
 #include <QIcon>
 #include <QQmlContext>
-#include "hexByArgon2.h"
 #include <qdebug.h>
+#include <QQuickStyle>
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+    QQuickStyle::setStyle("Basic");
 
     // app.setWindowIcon(QIcon("/qml/images/authFrameImage/i5.svg")); - иконка
 
