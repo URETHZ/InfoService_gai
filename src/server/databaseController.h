@@ -10,7 +10,7 @@ public:
     // Статический метод получения единственного экземпляра
     static DataBaseController& instance();
     // Добавляет в список connections соединение
-    bool addDatabaseName(const QString &user);
+    void addDatabaseName(const QString &user);
 
     // Метод для установки параметров
     bool setConnectionParams(const QString &user, const QString &pass,

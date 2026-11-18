@@ -21,8 +21,12 @@ void DatabaseWorker::initConnection(const QString &role, const QString &password
 void DatabaseWorker::executeSelect(int requestId, const QString &role, const QString &sql, const QVariantMap &params) {
     // Получаем соединение ДЛЯ ЭТОГО ПОТОКА (контроллер сделает это автоматически)
     QSqlDatabase db = DataBaseController::instance().getConnectionByName(role);
-    if (!db.isOpen()) {
-        emit queryError(requestId, "Соединение с БД потеряно.");
+    if(!db.isValid()) {
+        emit queryError(requestId, "Соединение не установлено");
+    }
+    if (!isConnectionAlive(role)) {
+        emit queryError(requestId, "Потеряно cоединение");
+        emit connectionFailed("Потеряно соединение с БД");
         return;
     }
 
@@ -50,4 +54,17 @@ void DatabaseWorker::executeSelect(int requestId, const QString &role, const QSt
     }
 
     emit DatabaseWorker::queryFinished(requestId, result);
+}
+
+void DatabaseWorker::closeConnection(const QString &role) {
+    DataBaseController::instance().closeConnectionByName(role);
+}
+
+bool DatabaseWorker::isConnectionAlive(const QString &role) {
+    QSqlDatabase db = DataBaseController::instance().getConnectionByName(role);
+    QSqlQuery query(db);
+    return query.exec("SELECT 1");
+}
+DatabaseWorker::~DatabaseWorker() {
+    DataBaseController::instance().closeConnectionByName("gai_app_role");
 }

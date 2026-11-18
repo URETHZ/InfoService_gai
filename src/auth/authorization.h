@@ -14,7 +14,8 @@ class Authorization : public QObject {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
-
+private:
+    void shutdown();
 public:
     enum AuthStatus {
         OK = 0,
@@ -36,6 +37,8 @@ public:
     static Authorization& instance();
     explicit Authorization(QObject *parent = nullptr);
     static Authorization& create(QQmlEngine *, QJSEngine *);
+    void closeAsyncConnection();
+
     ~Authorization();
 
     Q_INVOKABLE AuthStatus authorize(const QString &login, const QString &password);

@@ -42,10 +42,10 @@ qt_add_qml_module(appProject_GAI_information_system
         src/auth/authorization.cpp
         src/auth/hexByArgon2.cpp
         src/auth/hexByArgon2.h
-        src/config/AppSettings.h
-        src/config/AppSettings.cpp
-        SOURCES src/server/databaseWorker.cpp
-        SOURCES src/server/databaseWorker.h
+        src/config/appSettings.h
+        src/config/appSettings.cpp
+        src/server/databaseWorker.cpp
+        src/server/databaseWorker.h
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

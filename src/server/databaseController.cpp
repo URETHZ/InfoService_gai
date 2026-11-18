@@ -18,13 +18,11 @@ QString DataBaseController::getConnNameByUsername(const QString &user) {
         .arg(reinterpret_cast<quintptr>(currentThread));
 }
 
-bool DataBaseController::addDatabaseName(const QString &user){
+void DataBaseController::addDatabaseName(const QString &user){
     QString name = getConnNameByUsername(user);
-    connections.insert(name, QSqlDatabase::addDatabase("QPSQL", name));
     if(!connections.contains(name)){
-        return false;
+        connections.insert(name, QSqlDatabase::addDatabase("QPSQL", name));
     }
-    return true;
 }
 
 bool DataBaseController::setConnectionParams(const QString &user, const QString &pass, const QString &ip, int port) {
@@ -46,6 +44,7 @@ bool DataBaseController::ConnectToDB(const QString &user)
     if(!connections.contains(name)){
         return false;
     }
+    connections.value(name).setConnectOptions("connect_timeout=5");
     return connections.value(name).open();
 }
 
@@ -67,16 +66,16 @@ QSqlDatabase DataBaseController::getConnectionByName(const QString &user) {
 
 void DataBaseController::closeConnectionByName(const QString &user)
 {
-    if(DataBaseController::getConnectionByName(user).isValid())
-    {
-        connections.value(getConnNameByUsername(user)).close();
-        connections.remove(getConnNameByUsername(user));
+    QString name = getConnNameByUsername(user);
+    if(connections.contains(name)){
+        connections.take(name).close();
+        QSqlDatabase::removeDatabase(name);
     }
 }
 
 // Закрываем соединения
 DataBaseController::~DataBaseController() {
-    QStringList names = connections.keys();
+    const QStringList names = connections.keys();
     connections.clear();
     for (const QString &name : names) {
         QSqlDatabase::removeDatabase(name);

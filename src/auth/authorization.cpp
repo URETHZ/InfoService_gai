@@ -1,14 +1,15 @@
 #include <QRandomGenerator>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
+#include <QCoreApplication>
+#include <QThread>
+#include "appSettings.h"
 #include "authorization.h"
 #include "hexByArgon2.h"
-#include <QThread>
-#include "AppSettings.h"
 
 // Метод авторизации после запроса в БД
 Authorization::AuthStatus Authorization::authorize(const QString &password, const QString &DBHashpassword) {
-    if(!password.isEmpty()) {
+    if(!DBHashpassword.isEmpty()) {
         QStringList parts = DBHashpassword.split(':');
         if (parts.size() != 2) {
             return Authorization::AuthStatus::UNKOWN_ERROR;
@@ -49,6 +50,8 @@ Authorization::Authorization(QObject *parent) : QObject(parent) {
     connect(m_dbWorker, &DatabaseWorker::connectionFailed, this, &Authorization::connectionFailed);
     // Безопасное удаление воркера при завершении потока
     connect(m_dbThread, &QThread::finished, m_dbWorker, &QObject::deleteLater);
+    // Сносим все соединения если уже вышли из программы
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &Authorization::shutdown);
 }
 
 // Singleton
@@ -63,6 +66,7 @@ Authorization& Authorization::create(QQmlEngine *, QJSEngine *) {
 }
 
 Authorization::~Authorization() {
+    if (m_dbThread->isRunning()) closeAsyncConnection();
     m_dbThread->quit();
     m_dbThread->wait();
 }
@@ -87,4 +91,18 @@ void Authorization::executeQueryAsync(int requestId, const QString &sql, const Q
                               Q_ARG(QString, sql),
                               Q_ARG(QVariantMap, params)
                               );
+}
+
+void Authorization::closeAsyncConnection() {
+    QMetaObject::invokeMethod(m_dbWorker, "closeConnection" , Qt::QueuedConnection,
+                               Q_ARG(QString, "gai_app_role"));
+}
+
+void Authorization::shutdown() {
+    if (!m_dbThread->isRunning())
+        return;
+
+    m_dbThread->quit();
+    if (!m_dbThread->wait(6000))
+        qWarning() << "DB thread did not stop in time";
 }

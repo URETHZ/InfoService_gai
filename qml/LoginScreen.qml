@@ -7,27 +7,50 @@ import Project_GAI_information_system
 // Страница авторизации
 Page {
     id: authFrame
+
+    // Первое подключение - когда включаем приложение
+    Component.onCompleted:  {
+        mainFrame.title = "АИС ГАИ - Авторизация"
+        mainFrame.minimumHeight = 400
+        mainFrame.minimumWidth = 350
+
+        statusConnFrame.visible = true
+        statusConnFrame.setText = "Подключение..."
+        Authorization.initConnectionAsync(AppSettings.serverIp, AppSettings.serverPort)
+    }
+
+    // Когда возвращаемся из настроек
     StackView.onActivating: {
         mainFrame.title = "АИС ГАИ - Авторизация"
         mainFrame.minimumHeight = 400
         mainFrame.minimumWidth = 350
 
-        //loadingText.visible = true
+        statusConnFrame.visible = true
+        statusConnFrame.setText = "Подключение..."
         Authorization.initConnectionAsync(AppSettings.serverIp, AppSettings.serverPort)
+    }
+
+    Timer {
+        id: hideStatusTimer
+        interval: 3000
+        repeat: false
+        onTriggered: statusConnFrame.visible = false
     }
 
     Connections {
         target: Authorization
 
         function onConnectionSuccess() {
-            console.log("Успешно подключились к БД")
-            //loadingText.visible = false
+            statusConnFrame.setText = "Подключено"
+            statusConnFrame.isOnline = true
+            hideStatusTimer.restart()
         }
 
         function onConnectionFailed(error) {
-            errorLabel.text = error
-            errorLabel.visible = true
-            //loadingText.visible = false
+            statusConnFrame.setText = error + " Переподключение..."
+            statusConnFrame.isOnline = false
+            statusConnFrame.visible = true
+            Authorization.initConnectionAsync(AppSettings.serverIp, AppSettings.serverPort);
         }
 
         function onQueryFinished(requestId, data) {
@@ -64,7 +87,8 @@ Page {
             }
         }
         function onQueryError(error) {
-            errorLabel.text = "Ошибка БД: " + error
+            errorLabel.text = error
+            loginBtn.isProcessing = false
         }
 
     }
@@ -159,7 +183,7 @@ Page {
             Image {
                 id: logoImage
                 source: AppSettings.loginImagePath
-                width: parent.width * 0.8
+                width: parent.width < parent.height ? parent.width * 0.8 : parent.height * 0.8
                 height: width
                 fillMode: Image.PreserveAspectFit
 
@@ -269,6 +293,8 @@ Page {
                             color: "#a62828"
                             font.pixelSize: 16
                             Layout.alignment: Qt.AlignRight
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
                         }
 
 
@@ -447,6 +473,7 @@ Page {
         }
     }
     Item {
+
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.margins: 10
@@ -478,6 +505,47 @@ Page {
             onClicked: {
                 mainStack.push("SettingsAuthFrame.qml")
             }
+        }
+    }
+    Rectangle {
+        id: statusConnFrame
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 5
+        z: 10
+        visible: false
+        radius: height / 2
+        color: isOnline ? Qt.alpha("green", 0.5) : Qt.alpha("red", 0.5)
+
+        property bool isOnline: false
+        property string setText: "Статус подключения"
+        readonly property real hPadding: 30
+        readonly property real maxWidth: parent.width * 0.7
+
+        width: Math.min(metrics.width + 5 + hPadding, maxWidth)
+        implicitHeight: label.implicitHeight + 14
+        height: implicitHeight
+
+        Behavior on width {
+            NumberAnimation { duration: 50; easing.type: Easing.OutCubic }
+        }
+
+        // измеряет ширину текста в одну строку, без переноса
+        TextMetrics {
+            id: metrics
+            font: label.font
+            text: statusConnFrame.setText
+        }
+
+        Text {
+            id: label
+            anchors.centerIn: parent
+            width: parent.width - statusConnFrame.hPadding
+            wrapMode: Text.Wrap
+            horizontalAlignment: Text.AlignHCenter
+            font.pixelSize: 14
+            color: "white"
+            text: statusConnFrame.setText
         }
     }
 }
