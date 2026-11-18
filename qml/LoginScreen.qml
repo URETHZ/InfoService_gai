@@ -11,12 +11,62 @@ Page {
         mainFrame.title = "АИС ГАИ - Авторизация"
         mainFrame.minimumHeight = 400
         mainFrame.minimumWidth = 350
+
+        //loadingText.visible = true
+        Authorization.initConnectionAsync(AppSettings.serverIp, AppSettings.serverPort)
     }
 
-    Authorization {
-        id: auth
-        property string ip: "10.241.79.160"
-        property int port: 5432
+    Connections {
+        target: Authorization
+
+        function onConnectionSuccess() {
+            console.log("Успешно подключились к БД")
+            //loadingText.visible = false
+        }
+
+        function onConnectionFailed(error) {
+            errorLabel.text = error
+            errorLabel.visible = true
+            //loadingText.visible = false
+        }
+
+        function onQueryFinished(requestId, data) {
+            if(requestId === 1000) {
+                var hashFromDb = data?.[0]?.password ?? ""
+                loginBtn.isProcessing = false
+                switch (Authorization.authorize(password.text, hashFromDb))
+                {
+                case 0:
+                    mainStack.replace("General.qml")
+                    break
+                case 1:
+                    errorLabel.text = "Неверный логин"
+                    errorLabel.visible = true
+                    break
+                case 2:
+                    errorLabel.text = "Неверный пароль"
+                    errorLabel.visible = true
+                    forgotPasswordLink.visible = true
+                    break
+                case 3:
+                    errorLabel.text = "Учетная запись заблокирована"
+                    errorLabel.visible = true
+                    break
+                case 4:
+                    errorLabel.text = "Ошибка сервера"
+                    errorLabel.visible = true
+                    break
+                default:
+                    errorLabel.text = "Неизвестная ошибка авторизации"
+                    errorLabel.visible = true
+                    break
+                }
+            }
+        }
+        function onQueryError(error) {
+            errorLabel.text = "Ошибка БД: " + error
+        }
+
     }
     RowLayout {
         anchors.fill: parent
@@ -332,44 +382,10 @@ Page {
 
                         loginBtn.isProcessing = true
 
-                        loadingTimer.start()
-                    }
-                    Timer {
-
-                        id: loadingTimer
-                        interval: 1000
-                        repeat: false
-
-                        onTriggered: {
-                            loginBtn.isProcessing = false
-                            switch (auth.authorize(login.text, password.text))
-                            {
-                            case 0:
-                                mainStack.replace("General.qml")
-                                break
-                            case 1:
-                                errorLabel.text = "Неверный логин"
-                                errorLabel.visible = true
-                                break
-                            case 2:
-                                errorLabel.text = "Неверный пароль"
-                                errorLabel.visible = true
-                                forgotPasswordLink.visible = true
-                                break
-                            case 3:
-                                errorLabel.text = "Учетная запись заблокирована"
-                                errorLabel.visible = true
-                                break
-                            case 4:
-                                errorLabel.text = "Ошибка сервера"
-                                errorLabel.visible = true
-                                break
-                            default:
-                                errorLabel.text = "Неизвестная ошибка авторизации"
-                                errorLabel.visible = true
-                                break
-                            }
-                        }
+                        Authorization.executeQueryAsync(1000,
+                                    "SELECT password FROM \"systemval\".users WHERE username = :login",
+                                    { ":login": login.text }
+                                )
                     }
                 }
             }

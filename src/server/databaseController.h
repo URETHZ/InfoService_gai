@@ -38,7 +38,7 @@ public:
 private:
     DataBaseController() = default;
     QHash<QString, QSqlDatabase> connections;
-    QString dbName = DATABASE_NAME;
+    QString m_dbName = DATABASE_NAME;
 };
 
 #endif // DATABASECONTROLLER_H

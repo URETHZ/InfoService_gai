@@ -2,48 +2,89 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include "authorization.h"
-#include "databaseController.h"
 #include "hexByArgon2.h"
+#include <QThread>
+#include "AppSettings.h"
 
-// Метод авторизации
-Authorization::AuthStatus Authorization::authorize(const QString &login, const QString &password)
-{
-    QSqlQuery query(DataBaseController::instance().getConnectionByName("gai_app_role"));
-    //Заполняем запрос
-    query.prepare("SELECT password FROM systemval.users WHERE \"username\" = :login");
-    query.bindValue(":login",login);
-
-    //Обрабатываем результат
-    if (query.exec()){
-        if (query.next())
-        {
-            QString dbStoredString = query.value(0).toString();
-
-            QStringList parts = dbStoredString.split(':');
-            if (parts.size() != 2) {
-                return Authorization::AuthStatus::UNKOWN_ERROR;
-            }
-
-            QString dbSalt = parts[0]; // Соль из базы
-            QString dbHash = parts[1]; // Эталонный хеш из базы
-            QString newHash = gethashPasswordbySalt(password, dbSalt);
-
-            if (newHash == dbHash) {
-                return Authorization::AuthStatus::OK;
-            }
-            return Authorization::AuthStatus::PASSWORD_INCORRECT;
+// Метод авторизации после запроса в БД
+Authorization::AuthStatus Authorization::authorize(const QString &password, const QString &DBHashpassword) {
+    if(!password.isEmpty()) {
+        QStringList parts = DBHashpassword.split(':');
+        if (parts.size() != 2) {
+            return Authorization::AuthStatus::UNKOWN_ERROR;
         }
-        else {
-            return Authorization::AuthStatus::LOGIN_NOT_FOUND;
-        }
-    }
-    else{
-        return Authorization::AuthStatus::SERVER_ERROR;
-    }
 
+        QString dbSalt = parts[0]; // Соль из базы
+        QString dbHash = parts[1]; // Эталонный хеш из базы
+        QString newHash = gethashPasswordbySalt(password, dbSalt);
+
+        if (newHash == dbHash) {
+            return Authorization::AuthStatus::OK;
+        }
+        return Authorization::AuthStatus::PASSWORD_INCORRECT;
+    }
+    else {
+        return Authorization::AuthStatus::LOGIN_NOT_FOUND;
+    }
 }
 
 bool Authorization::haveRightsToModule(int moduleNumber)
 {
     return true;
+}
+
+// Конструктор для инициализации потоков и сигналов
+Authorization::Authorization(QObject *parent) : QObject(parent) {
+
+    m_dbThread = new QThread(this);
+    // Создаем воркер (пока он в главном потоке)
+    m_dbWorker = new DatabaseWorker();
+
+    // воркер в фоновый поток
+    m_dbWorker->moveToThread(m_dbThread);
+    // подписка на уведомления от фонового потока
+    connect(m_dbWorker, &DatabaseWorker::queryFinished, this, &Authorization::queryFinished);
+    connect(m_dbWorker, &DatabaseWorker::queryError, this, &Authorization::queryError);
+    connect(m_dbWorker, &DatabaseWorker::connectionSuccess, this, &Authorization::connectionSuccess);
+    connect(m_dbWorker, &DatabaseWorker::connectionFailed, this, &Authorization::connectionFailed);
+    // Безопасное удаление воркера при завершении потока
+    connect(m_dbThread, &QThread::finished, m_dbWorker, &QObject::deleteLater);
+}
+
+// Singleton
+Authorization& Authorization::instance() {
+    static Authorization auth;
+    return auth;
+}
+
+// Singleton для QML
+Authorization& Authorization::create(QQmlEngine *, QJSEngine *) {
+    return Authorization::instance();   // QML получает тот же объект, что и C++
+}
+
+Authorization::~Authorization() {
+    m_dbThread->quit();
+    m_dbThread->wait();
+}
+
+// Устнановка соединеня с БД для окна авторизации
+void Authorization::initConnectionAsync(const QString &ip, int port) {
+    m_dbThread->start();
+    QMetaObject::invokeMethod(m_dbWorker, "initConnection", Qt::QueuedConnection,
+                              Q_ARG(QString, "gai_app_role"),
+                              Q_ARG(QString, "h4fr1sdpcg4s33"),
+                              Q_ARG(QString, ip),
+                              Q_ARG(int, port)
+                              );
+}
+
+// Вызов SQL выражения в потоке
+void Authorization::executeQueryAsync(int requestId, const QString &sql, const QVariantMap &params) {
+    // Отправляем запрос в фоновый поток
+    QMetaObject::invokeMethod(m_dbWorker, "executeSelect", Qt::QueuedConnection,
+                              Q_ARG(int, requestId),
+                              Q_ARG(QString, "gai_app_role"),
+                              Q_ARG(QString, sql),
+                              Q_ARG(QVariantMap, params)
+                              );
 }

@@ -1,5 +1,6 @@
 #include "databaseController.h"
 #include <QSqlDatabase>
+#include <QThread>
 
 
 DataBaseController& DataBaseController::instance() {
@@ -8,9 +9,13 @@ DataBaseController& DataBaseController::instance() {
 }
 
 QString DataBaseController::getConnNameByUsername(const QString &user) {
-    QStringList list;
-    list << dbName << "-" << user;
-    return list.join("");
+    // Получаем указатель на текущий поток
+    QThread *currentThread = QThread::currentThread();
+
+    return QString("%1-%2-%3")
+        .arg(m_dbName)
+        .arg(user)
+        .arg(reinterpret_cast<quintptr>(currentThread));
 }
 
 bool DataBaseController::addDatabaseName(const QString &user){
@@ -29,7 +34,7 @@ bool DataBaseController::setConnectionParams(const QString &user, const QString 
     }
     connections.value(name).setHostName(ip);
     connections.value(name).setPort(port);
-    connections.value(name).setDatabaseName(dbName);
+    connections.value(name).setDatabaseName(m_dbName);
     connections.value(name).setUserName(user);
     connections.value(name).setPassword(pass);
     return true;

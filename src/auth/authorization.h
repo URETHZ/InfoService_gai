@@ -5,10 +5,15 @@
 #include <QString>
 #include <QHash>
 #include <QtQml/qqmlregistration.h>
+#include "DatabaseWorker.h"
+
+class QQmlEngine;
+class QJSEngine;
 
 class Authorization : public QObject {
     Q_OBJECT
     QML_ELEMENT
+    QML_SINGLETON
 
 public:
     enum AuthStatus {
@@ -28,22 +33,32 @@ public:
         D = 3
     };
     Q_ENUM(ModuleRight)
-
-    explicit Authorization(QObject *parent = nullptr) {  }
+    static Authorization& instance();
+    explicit Authorization(QObject *parent = nullptr);
+    static Authorization& create(QQmlEngine *, QJSEngine *);
+    ~Authorization();
 
     Q_INVOKABLE AuthStatus authorize(const QString &login, const QString &password);
 
     Q_INVOKABLE bool haveRightsToModule(int moduleNumber);
 
     Q_INVOKABLE bool isLogined() const { return !currentLogin.isEmpty(); }
-// Сигналы QML о статусе подключения к БД
+
+    Q_INVOKABLE void initConnectionAsync(const QString &ip, int port);
+
+    Q_INVOKABLE void executeQueryAsync(int requestId, const QString &sql, const QVariantMap &params);
+
 signals:
-
-
+    void connectionSuccess();
+    void connectionFailed(const QString &error);
+    void queryFinished(int requestId, const QVariantList &data);
+    void queryError(int requestId, const QString &error);
 private:
     int currentUserId = -1;
     QString currentLogin = "";
     QHash<int, ModuleRight> UserRights;
+    QThread *m_dbThread;
+    DatabaseWorker *m_dbWorker;
 };
 
 #endif
