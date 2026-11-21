@@ -63,9 +63,10 @@ Page {
                 {
                 case 0:
                     // Загружаем описание меню
-                    Authorization.takeMenuList(400, {})
+                    Authorization.takeMenuList(400)
                     // Загружаем права доступа.
                     Authorization.takeRights(500, {":login" : login.text} )
+
                     mainStack.replace("General.qml")
                     break
                 case 1:
@@ -92,9 +93,10 @@ Page {
                 }
             break
             case 500:
-
+                Authorization.setMenuList(data)
                 break
             case 400:
+                Authorization.setRights(data)
                 break
             }
         }
@@ -420,7 +422,7 @@ Page {
 
                         loginBtn.isProcessing = true
 
-                        Authorization.takePassword(1000, login.text)
+                        Authorization.takePassword(1000, {":login" : login.text})
                     }
                 }
             }

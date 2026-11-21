@@ -9,7 +9,6 @@ ApplicationWindow {
     title: "АИС ГАИ"
     color: "#1e1e24"
 
-
     // Стек экранов
     StackView {
         id: mainStack

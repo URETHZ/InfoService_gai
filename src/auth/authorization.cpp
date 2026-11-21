@@ -72,6 +72,7 @@ Authorization::~Authorization() {
 }
 
 // Устнановка соединеня с БД для окна авторизации
+
 void Authorization::initConnectionAsync(const QString &ip, int port) {
     m_dbThread->start();
     QMetaObject::invokeMethod(m_dbWorker, "initConnection", Qt::QueuedConnection,
@@ -93,21 +94,21 @@ void Authorization::executeSelectQueryAsync(int requestId, const QString &sql, c
                               );
 }
 
-void takePassword(int requestId, const QVariantMap &params) {
+void Authorization::takePassword(int requestId, const QVariantMap &params) {
     Authorization::instance().Authorization::executeSelectQueryAsync(requestId,
                                         "SELECT password "
                                         "FROM \"systemval\".users "
                                         "WHERE username = :login", params);
 }
 
-void takeMenuList(int requestId, const QVariantMap &params) {
+void Authorization::takeMenuList(int requestId) {
     Authorization::instance().Authorization::executeSelectQueryAsync(requestId,
-                                                                     "SELECT * FROM systemval.menu ORDER BY parent_id, sort_order", params);
+                                                                     "SELECT * FROM systemval.menu ORDER BY parent_id, sort_order", {});
 }
 
-void takeRights(int requestId, const QVariantMap &params) {
+void Authorization::takeRights(int requestId, const QVariantMap &params) {
     Authorization::instance().Authorization::executeSelectQueryAsync(requestId,
-                                                                     "SELECT u.username, "
+                                                                     "SELECT r.menu_id, "
                                                                      "COALESCE(r.r, false) AS r,"
                                                                      "COALESCE(r.w, false) AS w, "
                                                                      "COALESCE(r.e, false) AS e, "
@@ -115,13 +116,59 @@ void takeRights(int requestId, const QVariantMap &params) {
                                                                      "FROM systemval.rights AS r "
                                                                      "RIGHT JOIN systemval.users AS u ON r.user_id = u.user_id "
                                                                      "WHERE u.username = :login LIMIT 1", params);
+    currentLogin = params.value(":login").toString();
 }
 
-void setMenuList(const QVariantList &data) {
+void Authorization::setMenuList(const QVariantList &data) {
+    menuTree.clear();
+    QHash<int, QVariantMap> menuMap;
 
+    // Инициализируем пустые списки детей для каждого пункта
+    for (const QVariant &item : data) {
+        QVariantMap curr = item.toMap();
+        curr["childrens"] = QVariantList();
+        menuMap.insert(curr.value("menu_id").toInt(), curr);
+    }
+
+    // Собираем дерево
+    for (const QVariant &item : data) {
+        QVariantMap curr = item.toMap();
+        int currId = curr.value("menu_id").toInt();
+        int parentId = curr.value("parent_id").toInt();
+
+        if (parentId == 0) {
+            menuTree.append(menuMap.value(currId));
+        } else {
+            // Находим родителя
+            if (menuMap.contains(parentId)) {
+                QVariantMap parent = menuMap.value(parentId);
+                QVariantList children = parent.value("childrens").toList();
+
+                // Добавляем текущий элемент в конец списка детей
+                children.append(menuMap.value(currId));
+
+                parent["childrens"] = children;
+                menuMap[parentId] = parent;
+            }
+        }
+    }
 }
 
-void setRights(const QVariantList &data) {
+void Authorization::setRights(const QVariantList &data) {
+    QVariantMap query = (!data.isEmpty() && data.first().canConvert<QVariantMap>())
+    ? data.first().toMap()
+    : QVariantMap();
+
+    if(query.count()==5)
+    {
+        int mask = 0;
+        if (query.value("r").toBool()) mask |= 1; // Read
+        if (query.value("w").toBool()) mask |= 2; // Write
+        if (query.value("e").toBool()) mask |= 4; // Edit
+        if (query.value("d").toBool()) mask |= 8; // Delete
+
+        userRights.insert(query.value("menu_id").toInt(), mask);
+    }
 
 }
 

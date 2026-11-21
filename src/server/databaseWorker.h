@@ -8,6 +8,7 @@
 #include <qsqlerror.h>
 #include <QSqlRecord>
 
+
 class DatabaseWorker : public QObject {
     Q_OBJECT
 public:
