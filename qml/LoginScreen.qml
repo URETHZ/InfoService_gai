@@ -54,12 +54,18 @@ Page {
         }
 
         function onQueryFinished(requestId, data) {
-            if(requestId === 1000) {
+            switch (requestId)
+            {
+            case 1000:
                 var hashFromDb = data?.[0]?.password ?? ""
                 loginBtn.isProcessing = false
                 switch (Authorization.authorize(password.text, hashFromDb))
                 {
                 case 0:
+                    // Загружаем описание меню
+                    Authorization.takeMenuList(400, {})
+                    // Загружаем права доступа.
+                    Authorization.takeRights(500, {":login" : login.text} )
                     mainStack.replace("General.qml")
                     break
                 case 1:
@@ -84,6 +90,12 @@ Page {
                     errorLabel.visible = true
                     break
                 }
+            break
+            case 500:
+
+                break
+            case 400:
+                break
             }
         }
         function onQueryError(error) {
@@ -408,10 +420,7 @@ Page {
 
                         loginBtn.isProcessing = true
 
-                        Authorization.executeQueryAsync(1000,
-                                    "SELECT password FROM \"systemval\".users WHERE username = :login",
-                                    { ":login": login.text }
-                                )
+                        Authorization.takePassword(1000, login.text)
                     }
                 }
             }

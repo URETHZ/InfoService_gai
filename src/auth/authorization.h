@@ -49,8 +49,17 @@ public:
 
     Q_INVOKABLE void initConnectionAsync(const QString &ip, int port);
 
-    Q_INVOKABLE void executeQueryAsync(int requestId, const QString &sql, const QVariantMap &params);
+    void executeSelectQueryAsync(int requestId, const QString &sql, const QVariantMap &params);
 
+    Q_INVOKABLE void takePassword(int requestId, const QVariantMap &params);
+
+    Q_INVOKABLE void takeMenuList(int requestId, const QVariantMap &params);
+
+    Q_INVOKABLE void takeRights(int requestId, const QVariantMap &params);
+
+    Q_INVOKABLE void setMenuList(const QVariantList &data);
+
+    Q_INVOKABLE void setRights(const QVariantList &data);
 signals:
     void connectionSuccess();
     void connectionFailed(const QString &error);

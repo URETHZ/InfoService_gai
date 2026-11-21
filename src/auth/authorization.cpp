@@ -83,7 +83,7 @@ void Authorization::initConnectionAsync(const QString &ip, int port) {
 }
 
 // Вызов SQL выражения в потоке
-void Authorization::executeQueryAsync(int requestId, const QString &sql, const QVariantMap &params) {
+void Authorization::executeSelectQueryAsync(int requestId, const QString &sql, const QVariantMap &params) {
     // Отправляем запрос в фоновый поток
     QMetaObject::invokeMethod(m_dbWorker, "executeSelect", Qt::QueuedConnection,
                               Q_ARG(int, requestId),
@@ -91,6 +91,38 @@ void Authorization::executeQueryAsync(int requestId, const QString &sql, const Q
                               Q_ARG(QString, sql),
                               Q_ARG(QVariantMap, params)
                               );
+}
+
+void takePassword(int requestId, const QVariantMap &params) {
+    Authorization::instance().Authorization::executeSelectQueryAsync(requestId,
+                                        "SELECT password "
+                                        "FROM \"systemval\".users "
+                                        "WHERE username = :login", params);
+}
+
+void takeMenuList(int requestId, const QVariantMap &params) {
+    Authorization::instance().Authorization::executeSelectQueryAsync(requestId,
+                                                                     "SELECT * FROM systemval.menu ORDER BY parent_id, sort_order", params);
+}
+
+void takeRights(int requestId, const QVariantMap &params) {
+    Authorization::instance().Authorization::executeSelectQueryAsync(requestId,
+                                                                     "SELECT u.username, "
+                                                                     "COALESCE(r.r, false) AS r,"
+                                                                     "COALESCE(r.w, false) AS w, "
+                                                                     "COALESCE(r.e, false) AS e, "
+                                                                     "COALESCE(r.d, false) AS d "
+                                                                     "FROM systemval.rights AS r "
+                                                                     "RIGHT JOIN systemval.users AS u ON r.user_id = u.user_id "
+                                                                     "WHERE u.username = :login LIMIT 1", params);
+}
+
+void setMenuList(const QVariantList &data) {
+
+}
+
+void setRights(const QVariantList &data) {
+
 }
 
 void Authorization::closeAsyncConnection() {
