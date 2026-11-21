@@ -21,18 +21,16 @@ void DatabaseWorker::initConnection(const QString &role, const QString &password
 // 2. Выполнение запроса (вызывается в фоновом потоке)
 void DatabaseWorker::executeSelect(int requestId, const QString &role, const QString &sql, const QVariantMap &params) {
     // Получаем соединение ДЛЯ ЭТОГО ПОТОКА (контроллер сделает это автоматически)
-    qDebug() << "фигня собачка 1";
     QSqlDatabase db = DataBaseController::instance().getConnectionByName(role);
     if(!db.isValid()) {
         emit queryError(requestId, "Соединение не установлено");
+        return;
     }
-    qDebug() << "фигня собачка 2";
     if (!isConnectionAlive(role)) {
         emit queryError(requestId, "Потеряно cоединение");
         emit connectionFailed("Потеряно соединение с БД");
         return;
     }
-    qDebug() << "фигня собачка 3";
 
     QSqlQuery query(db);
     query.prepare(sql);
@@ -41,13 +39,11 @@ void DatabaseWorker::executeSelect(int requestId, const QString &role, const QSt
     for (auto it = params.constBegin(); it != params.constEnd(); ++it) {
         query.bindValue(it.key(), it.value());
     }
-    qDebug() << "фигня собачка 4";
 
     if (!query.exec()) {
         emit DatabaseWorker::queryError(requestId, query.lastError().text());
         return;
     }
-    qDebug() << "фигня собачка посел exec";
 
     // Собираем результат в список словарей для передачи в GUI
     QVariantList result;

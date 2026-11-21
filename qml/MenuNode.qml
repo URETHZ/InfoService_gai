@@ -1,41 +1,38 @@
 import QtQuick
 import QtQuick.Controls
 
-Loader {
-    id: loader
-    property var nodeData: null // Данные текущего пункта
+Menu {
+    id: root
+    property var nodeData: null
 
-    // Выбираем, что рисовать: Menu (если есть дети) или MenuItem (если это лист)
-    sourceComponent: (nodeData && nodeData.childrens && nodeData.childrens.length > 0)
-                     ? submenuComp
-                     : itemComp
+    // Поднимается вверх по дереву до General.qml
+    signal itemTriggered(var node)
 
-    // Компонент для папки (с подменю)
-    Component {
-        id: submenuComp
-        Menu {
-            title: nodeData.name
+    title: nodeData ? nodeData.name : ""
 
-            // РЕКУРСИЯ: перебираем детей и снова вызываем MenuNode
-            Repeater {
-                model: nodeData.childrens
-                delegate: MenuNode {
-                    nodeData: modelData // Передаем данные ребенка
-                }
-            }
+    readonly property Component itemComp: Component {
+        MenuItem {
+            property var node: null
+            text: node ? node.name : ""
+            onTriggered: root.itemTriggered(node)
         }
     }
 
-    // Компонент для конечного пункта (без детей)
-    Component {
-        id: itemComp
-        MenuItem {
-            text: nodeData.name
+    Component.onCompleted: {
+        if (!nodeData || !nodeData.childrens)
+            return
 
-            // Ловим клик
-            onTriggered: {
-                console.log("Нажато:", nodeData.name)
-                // auth.loadModule(nodeData.dll_name, nodeData.func_name)
+        const subComp = Qt.createComponent("MenuNode.qml")
+        if (subComp.status !== Component.Ready)
+            console.error(subComp.errorString())
+
+        for (const child of nodeData.childrens) {
+            if (child.childrens && child.childrens.length > 0) {
+                const sub = subComp.createObject(root, { nodeData: child })
+                sub.itemTriggered.connect(root.itemTriggered)
+                root.addMenu(sub)
+            } else {
+                root.addItem(itemComp.createObject(root, { node: child }))
             }
         }
     }

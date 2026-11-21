@@ -6,6 +6,7 @@
 #include "appSettings.h"
 #include "authorization.h"
 #include "hexByArgon2.h"
+#include <QJSEngine>
 
 // Метод авторизации после запроса в БД
 Authorization::AuthStatus Authorization::authorize(const QString &password, const QString &DBHashpassword) {
@@ -36,7 +37,6 @@ bool Authorization::haveRightsToModule(int moduleNumber)
 
 // Конструктор для инициализации потоков и сигналов
 Authorization::Authorization(QObject *parent) : QObject(parent) {
-
     m_dbThread = new QThread(this);
     // Создаем воркер (пока он в главном потоке)
     m_dbWorker = new DatabaseWorker();
@@ -61,8 +61,10 @@ Authorization& Authorization::instance() {
 }
 
 // Singleton для QML
-Authorization& Authorization::create(QQmlEngine *, QJSEngine *) {
-    return Authorization::instance();   // QML получает тот же объект, что и C++
+Authorization *Authorization::create(QQmlEngine *, QJSEngine *)
+{
+    QJSEngine::setObjectOwnership(&instance(), QJSEngine::CppOwnership);
+    return &instance();
 }
 
 Authorization::~Authorization() {
@@ -95,19 +97,19 @@ void Authorization::executeSelectQueryAsync(int requestId, const QString &sql, c
 }
 
 void Authorization::takePassword(int requestId, const QVariantMap &params) {
-    Authorization::instance().Authorization::executeSelectQueryAsync(requestId,
+    Authorization::executeSelectQueryAsync(requestId,
                                         "SELECT password "
                                         "FROM \"systemval\".users "
                                         "WHERE username = :login", params);
 }
 
 void Authorization::takeMenuList(int requestId) {
-    Authorization::instance().Authorization::executeSelectQueryAsync(requestId,
+    Authorization::executeSelectQueryAsync(requestId,
                                                                      "SELECT * FROM systemval.menu ORDER BY parent_id, sort_order", {});
 }
 
 void Authorization::takeRights(int requestId, const QVariantMap &params) {
-    Authorization::instance().Authorization::executeSelectQueryAsync(requestId,
+    Authorization::executeSelectQueryAsync(requestId,
                                                                      "SELECT r.menu_id, "
                                                                      "COALESCE(r.r, false) AS r,"
                                                                      "COALESCE(r.w, false) AS w, "
@@ -115,43 +117,40 @@ void Authorization::takeRights(int requestId, const QVariantMap &params) {
                                                                      "COALESCE(r.d, false) AS d "
                                                                      "FROM systemval.rights AS r "
                                                                      "RIGHT JOIN systemval.users AS u ON r.user_id = u.user_id "
-                                                                     "WHERE u.username = :login LIMIT 1", params);
+                                                                     "WHERE u.username = :login ", params);
     currentLogin = params.value(":login").toString();
 }
 
-void Authorization::setMenuList(const QVariantList &data) {
-    menuTree.clear();
-    QHash<int, QVariantMap> menuMap;
+static QVariantMap buildNode(int id,
+                             const QHash<int, QVariantMap> &nodes,
+                             const QHash<int, QList<int>> &childIds)
+{
+    QVariantMap node = nodes.value(id);
+    QVariantList children;
+    for (int childId : childIds.value(id))
+        children.append(buildNode(childId, nodes, childIds));
+    node["childrens"] = children;
+    return node;
+}
 
-    // Инициализируем пустые списки детей для каждого пункта
+void Authorization::setMenuList(const QVariantList &data)
+{
+    QHash<int, QVariantMap> nodes;
+    QHash<int, QList<int>> childIds;   // parent_id -> id детей (порядок как в запросе, т.е. по sort_order)
+
     for (const QVariant &item : data) {
-        QVariantMap curr = item.toMap();
-        curr["childrens"] = QVariantList();
-        menuMap.insert(curr.value("menu_id").toInt(), curr);
+        QVariantMap row = item.toMap();
+        int id = row.value("menu_id").toInt();
+        nodes.insert(id, row);
+        childIds[row.value("parent_id").toInt()].append(id);
     }
 
-    // Собираем дерево
-    for (const QVariant &item : data) {
-        QVariantMap curr = item.toMap();
-        int currId = curr.value("menu_id").toInt();
-        int parentId = curr.value("parent_id").toInt();
+    QVariantList tree;
+    for (int rootId : childIds.value(0))
+        tree.append(buildNode(rootId, nodes, childIds));
 
-        if (parentId == 0) {
-            menuTree.append(menuMap.value(currId));
-        } else {
-            // Находим родителя
-            if (menuMap.contains(parentId)) {
-                QVariantMap parent = menuMap.value(parentId);
-                QVariantList children = parent.value("childrens").toList();
-
-                // Добавляем текущий элемент в конец списка детей
-                children.append(menuMap.value(currId));
-
-                parent["childrens"] = children;
-                menuMap[parentId] = parent;
-            }
-        }
-    }
+    m_menuTree = tree;
+    emit menuTreeChanged();
 }
 
 void Authorization::setRights(const QVariantList &data) {

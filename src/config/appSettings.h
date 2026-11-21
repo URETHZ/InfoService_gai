@@ -17,13 +17,13 @@ class AppSettings : public QObject {
 
 public:
     static AppSettings& instance();                                  // для C++
-    static AppSettings& create(QQmlEngine *, QJSEngine *);           // для QML
+    static AppSettings* create(QQmlEngine *, QJSEngine *);           // для QML
 
     QString serverIp() const { return m_serverIp; }
     int serverPort() const { return m_serverPort; }
     QString loginImagePath() const { return m_loginImagePath; }
 
-    explicit AppSettings(QObject *parent = nullptr);
+
     void setServerIp(const QString &v);
     void setServerPort(int v);
     void setLoginImagePath(const QString &v);
@@ -38,8 +38,9 @@ signals:
     void loginImagePathChanged();
 
 private:
-    QString filePath() const;
+    explicit AppSettings(QObject *parent = nullptr);
 
+    QString filePath() const;
     QString m_serverIp = "localhost";
     int m_serverPort = 5432;
     QString m_loginImagePath = "images/authFrameImage/i1.svg";

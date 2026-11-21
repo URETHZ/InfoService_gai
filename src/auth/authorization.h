@@ -14,6 +14,8 @@ class Authorization : public QObject {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
+
+    Q_PROPERTY(QVariantList menuTree READ menuTree NOTIFY menuTreeChanged)
 private:
     void shutdown();
 public:
@@ -28,8 +30,7 @@ public:
     Q_ENUM(AuthStatus)
 
     static Authorization& instance();
-    explicit Authorization(QObject *parent = nullptr);
-    static Authorization& create(QQmlEngine *, QJSEngine *);
+    static Authorization* create(QQmlEngine *, QJSEngine *);
     void closeAsyncConnection();
 
     ~Authorization();
@@ -54,14 +55,19 @@ public:
 
     Q_INVOKABLE void setRights(const QVariantList &data);
 
+    QVariantList menuTree() const { return m_menuTree; }
+
 signals:
     void connectionSuccess();
     void connectionFailed(const QString &error);
     void queryFinished(int requestId, const QVariantList &data);
     void queryError(int requestId, const QString &error);
+    void menuTreeChanged();
 private:
+    explicit Authorization(QObject *parent = nullptr);
+
     QString currentLogin = "";
-    QList<QVariantMap> menuTree;
+    QVariantList m_menuTree;
     QHash<int, int> userRights; // id_menu + битовая маска прав
     QThread *m_dbThread;
     DatabaseWorker *m_dbWorker;

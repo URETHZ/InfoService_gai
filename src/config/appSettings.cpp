@@ -13,8 +13,9 @@ AppSettings& AppSettings::instance()
 }
 
 
-AppSettings& AppSettings::create(QQmlEngine *, QJSEngine *) {
-    return instance();   // QML получает тот же объект, что и C++
+AppSettings* AppSettings::create(QQmlEngine *, QJSEngine *) {
+    QJSEngine::setObjectOwnership(&instance(), QJSEngine::CppOwnership);
+    return &instance();   // QML получает тот же объект, что и C++
 }
 
 QString AppSettings::filePath() const {

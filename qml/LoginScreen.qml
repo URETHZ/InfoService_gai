@@ -13,7 +13,6 @@ Page {
         mainFrame.title = "АИС ГАИ - Авторизация"
         mainFrame.minimumHeight = 400
         mainFrame.minimumWidth = 350
-
         statusConnFrame.visible = true
         statusConnFrame.setText = "Подключение..."
         Authorization.initConnectionAsync(AppSettings.serverIp, AppSettings.serverPort)
@@ -39,6 +38,8 @@ Page {
 
     Connections {
         target: Authorization
+        property bool firstQuery: false
+        property bool secondQuery: false
 
         function onConnectionSuccess() {
             statusConnFrame.setText = "Подключено"
@@ -63,11 +64,9 @@ Page {
                 {
                 case 0:
                     // Загружаем описание меню
-                    Authorization.takeMenuList(400)
+                    Authorization.takeMenuList(500)
                     // Загружаем права доступа.
-                    Authorization.takeRights(500, {":login" : login.text} )
-
-                    mainStack.replace("General.qml")
+                    Authorization.takeRights(400, {":login" : login.text} )
                     break
                 case 1:
                     errorLabel.text = "Неверный логин"
@@ -94,14 +93,23 @@ Page {
             break
             case 500:
                 Authorization.setMenuList(data)
+                firstQuery = true
+                if (secondQuery){
+                    mainStack.replace("General.qml")
+                }
+
                 break
             case 400:
                 Authorization.setRights(data)
+                secondQuery = true
+                if (firstQuery){
+                    mainStack.replace("General.qml")
+                }
                 break
             }
         }
-        function onQueryError(error) {
-            errorLabel.text = error
+        function onQueryError(requestId, error) {
+            errorLabel.text = "["+requestId+"]: " + error
             loginBtn.isProcessing = false
         }
 
