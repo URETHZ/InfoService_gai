@@ -16,6 +16,7 @@ class Authorization : public QObject {
     QML_SINGLETON
 
     Q_PROPERTY(QVariantList menuTree READ menuTree NOTIFY menuTreeChanged)
+    Q_PROPERTY(QString currentLogin READ currentLogin)
 private:
     void shutdown();
 public:
@@ -37,9 +38,7 @@ public:
 
     Q_INVOKABLE AuthStatus authorize(const QString &login, const QString &password);
 
-    Q_INVOKABLE bool haveRightsToModule(int moduleNumber);
-
-    Q_INVOKABLE bool isLogined() const { return !currentLogin.isEmpty(); }
+    Q_INVOKABLE bool haveRightsToModule(int moduleNumber, int type); // 1 - r , 2 - w, 4 - e, 8 - d
 
     Q_INVOKABLE void initConnectionAsync(const QString &ip, int port);
 
@@ -57,6 +56,8 @@ public:
 
     QVariantList menuTree() const { return m_menuTree; }
 
+    QString currentLogin() const { return m_currentLogin; }
+
 signals:
     void connectionSuccess();
     void connectionFailed(const QString &error);
@@ -66,7 +67,7 @@ signals:
 private:
     explicit Authorization(QObject *parent = nullptr);
 
-    QString currentLogin = "";
+    QString m_currentLogin = "";
     QVariantList m_menuTree;
     QHash<int, int> userRights; // id_menu + битовая маска прав
     QThread *m_dbThread;

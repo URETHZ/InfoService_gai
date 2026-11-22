@@ -274,6 +274,7 @@ Page {
                     font.pixelSize: 18
                     maximumLength: 50
                     placeholderText: "login"
+                    text: "insurance"
                     verticalAlignment: TextInput.AlignVCenter
 
                     background: Rectangle {
@@ -292,6 +293,7 @@ Page {
                         maximumLength: 50
                         font.pixelSize: 18
                         placeholderText: "password"
+                        text: "Insure#2026"
                         verticalAlignment: TextInput.AlignVCenter
 
                         echoMode: showPassword.checked ?  TextInput.Password: TextInput.Normal

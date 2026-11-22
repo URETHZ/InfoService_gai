@@ -1,3 +1,5 @@
+
+
 #include <QRandomGenerator>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
@@ -30,9 +32,10 @@ Authorization::AuthStatus Authorization::authorize(const QString &password, cons
     }
 }
 
-bool Authorization::haveRightsToModule(int moduleNumber)
+bool Authorization::haveRightsToModule(int moduleNumber, int type)
 {
-    return true;
+    int rights = userRights.value(moduleNumber);
+    return (rights & type) != 0;
 }
 
 // Конструктор для инициализации потоков и сигналов
@@ -118,7 +121,7 @@ void Authorization::takeRights(int requestId, const QVariantMap &params) {
                                                                      "FROM systemval.rights AS r "
                                                                      "RIGHT JOIN systemval.users AS u ON r.user_id = u.user_id "
                                                                      "WHERE u.username = :login ", params);
-    currentLogin = params.value(":login").toString();
+    m_currentLogin = params.value(":login").toString();
 }
 
 static QVariantMap buildNode(int id,
@@ -154,21 +157,15 @@ void Authorization::setMenuList(const QVariantList &data)
 }
 
 void Authorization::setRights(const QVariantList &data) {
-    QVariantMap query = (!data.isEmpty() && data.first().canConvert<QVariantMap>())
-    ? data.first().toMap()
-    : QVariantMap();
-
-    if(query.count()==5)
-    {
+    for(const QVariant &item : data ) {
+        QVariantMap query = item.toMap();
         int mask = 0;
         if (query.value("r").toBool()) mask |= 1; // Read
         if (query.value("w").toBool()) mask |= 2; // Write
         if (query.value("e").toBool()) mask |= 4; // Edit
         if (query.value("d").toBool()) mask |= 8; // Delete
-
         userRights.insert(query.value("menu_id").toInt(), mask);
     }
-
 }
 
 void Authorization::closeAsyncConnection() {

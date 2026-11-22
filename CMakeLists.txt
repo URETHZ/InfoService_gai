@@ -47,6 +47,7 @@ qt_add_qml_module(appProject_GAI_information_system
         src/server/databaseWorker.cpp
         src/server/databaseWorker.h
         QML_FILES qml/MenuNode.qml
+        QML_FILES qml/StyledMenuItem.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
