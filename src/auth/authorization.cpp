@@ -122,6 +122,7 @@ void Authorization::takeRights(int requestId, const QVariantMap &params) {
                                                                      "RIGHT JOIN systemval.users AS u ON r.user_id = u.user_id "
                                                                      "WHERE u.username = :login ", params);
     m_currentLogin = params.value(":login").toString();
+    emit currentLoginChanged();
 }
 
 static QVariantMap buildNode(int id,

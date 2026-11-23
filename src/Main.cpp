@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    engine.loadFromModule("Project_GAI_information_system", "Main");
+    engine.loadFromModule("Gai", "Main");
 
     return QGuiApplication::exec();
 }

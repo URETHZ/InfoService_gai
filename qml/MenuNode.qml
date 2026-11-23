@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import Project_GAI_information_system
+import Gai
 
 Menu {
     id: root

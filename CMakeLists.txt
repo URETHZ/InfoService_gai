@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(Project_GAI_information_system VERSION 0.1 LANGUAGES C CXX)
+project(Gai VERSION 0.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -27,12 +27,12 @@ file(GLOB IMAGE_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/qml/images/authFrameImage/*.svg"
 )
 
-qt_add_executable(appProject_GAI_information_system
+qt_add_executable(appGai
     ${CPP_SOURCES}
 )
 
-qt_add_qml_module(appProject_GAI_information_system
-    URI Project_GAI_information_system
+qt_add_qml_module(appGai
+    URI Gai
     QML_FILES
         ${QML_SOURCES}
     RESOURCES
@@ -46,27 +46,41 @@ qt_add_qml_module(appProject_GAI_information_system
         src/config/appSettings.cpp
         src/server/databaseWorker.cpp
         src/server/databaseWorker.h
-        QML_FILES qml/MenuNode.qml
-        QML_FILES qml/StyledMenuItem.qml
+        src/config/libsLoader.cpp
+        src/config/libsLoader.h
+        QML_FILES
+        qml/MenuNode.qml
+        qml/StyledMenuItem.qml
+        qml/modules/dict/DictionaryPage.qml
+        QML_FILES qml/modules/documents/DtpForm.qml
+        QML_FILES qml/modules/documents/MileageReportPage.qml
+        QML_FILES qml/modules/documents/OverdueInspectionPage.qml
+        QML_FILES qml/modules/documents/StolenCarsPage.qml
+        QML_FILES qml/modules/documents/RightHandCarsPage.qml
+        QML_FILES qml/modules/about/AboutPage.qml
+        QML_FILES qml/modules/other/SettingsPage.qml
+        QML_FILES qml/modules/about/HelpPage.qml
+        QML_FILES qml/modules/other/ChangePasswordPage.qml
+        QML_FILES qml/modules/DefaultPage.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
-set_target_properties(appProject_GAI_information_system PROPERTIES
-#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appProject_GAI_information_system
+set_target_properties(appGai PROPERTIES
+#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appGai
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(appProject_GAI_information_system
+target_link_libraries(appGai
     PRIVATE Qt6::Quick Qt6::Sql Qt6::QuickControls2
 )
 
 # исходники Argon2
-target_sources(appProject_GAI_information_system PRIVATE
+target_sources(appGai PRIVATE
     thirdparty/argon2/src/argon2.c
     thirdparty/argon2/src/core.c
     thirdparty/argon2/src/encoding.c
@@ -76,7 +90,7 @@ target_sources(appProject_GAI_information_system PRIVATE
     thirdparty/argon2/include/argon2.h
 )
 
-target_include_directories(appProject_GAI_information_system PRIVATE
+target_include_directories(appGai PRIVATE
     thirdparty/argon2/include
     thirdparty/argon2/src
     thirdparty/argon2/src/blake2
@@ -87,7 +101,7 @@ target_include_directories(appProject_GAI_information_system PRIVATE
     src/config
 )
 
-install(TARGETS appProject_GAI_information_system
+install(TARGETS appGai
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

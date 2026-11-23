@@ -16,7 +16,7 @@ class Authorization : public QObject {
     QML_SINGLETON
 
     Q_PROPERTY(QVariantList menuTree READ menuTree NOTIFY menuTreeChanged)
-    Q_PROPERTY(QString currentLogin READ currentLogin)
+    Q_PROPERTY(QString currentLogin READ currentLogin NOTIFY currentLoginChanged)
 private:
     void shutdown();
 public:
@@ -64,6 +64,7 @@ signals:
     void queryFinished(int requestId, const QVariantList &data);
     void queryError(int requestId, const QString &error);
     void menuTreeChanged();
+    void currentLoginChanged();
 private:
     explicit Authorization(QObject *parent = nullptr);
 

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Shapes
-import Project_GAI_information_system
+import Gai
 
 // Страница с настройками авторизации
 Page {

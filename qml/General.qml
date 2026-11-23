@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Project_GAI_information_system
+import Gai
 
 Page {
     id: generalFrame
@@ -149,22 +149,68 @@ Page {
         }
     }
 
-    // ---------- Рабочая область ----------
     StackView {
         id: generalStack
         anchors.top: topBar.bottom
-        anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        initialItem: Rectangle {
-            color: "#202020"
+        anchors.left: scroll.right
+        anchors.bottom: statusBar.bottom
+        initialItem: "modules/DefaultPage.qml"
+    }
+    ScrollView {
+        id: scroll
+        width: 50
+        anchors.top: topBar.bottom
+        anchors.left: parent.left
+        anchors.bottom: statusBar.top
+        background: Rectangle {
+                color: "#1a1a1a"
+            }
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+        contentWidth: availableWidth
+        contentHeight: leftMenuBar.height
+        Rectangle {
+            id: leftMenuBar
+            width: scroll.availableWidth
+            height: 500 // --- задать когда добавится само меню (rowLayout)
+            color: "#1a1a1a"
+            clip: true
             Text {
+                id: example1
+                text: qsTr("тут будут дубликаты меню..")
                 anchors.centerIn: parent
-                text: "Добро пожаловать!"
-                font.italic: true
-                font.pixelSize: 16
                 color: "white"
+                font.pixelSize: 16
+                rotation: 90
+                transformOrigin: Item.Center
             }
         }
     }
+
+    Rectangle {
+        id: statusBar
+        height: 30
+        anchors.bottom: parent.bottom
+        anchors.left: scroll.left
+        anchors.right: parent.right
+        color: "#1a1a1a"
+        Rectangle {
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 1
+            color: "#212121"
+        }
+        Text {
+            id: example2
+            anchors.centerIn: parent
+            font.pixelSize: 16
+            text: qsTr("тут будут статусы")
+            color: "white"
+        }
+    }
+
+
 }
