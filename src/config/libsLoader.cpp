@@ -11,6 +11,6 @@ bool  LibsLoader::load(QString dllName) {
 
 }
 // Выполняем из обработчика метод создания объекта - результат передаем в контекст окна
-bool  LibsLoader::run(QString dllName, QString funcName, void* context) {
-
+bool  LibsLoader::run(QString dllName, QString funcName, Context* context) {
+    if(dllName.isEmpty() || funcName.isEmpty()) return false;
 }

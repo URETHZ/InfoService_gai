@@ -9,6 +9,10 @@
 class QQmlEngine;
 class QJSEngine;
 // Загрузчик dll принимает на вход параметр: имя .dll файла
+typedef struct {
+
+    int rights;
+} Context;
 class LibsLoader : public QObject {
     Q_OBJECT
     QML_ELEMENT
