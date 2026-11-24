@@ -1,11 +1,9 @@
-// GenericDictionaryPage.qml
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
 Page {
     anchors.fill: true
-    // Сюда мы будем передавать контроллер из DLL и название для заголовка
     property var controller
     property string pageTitle: "Справочник"
 

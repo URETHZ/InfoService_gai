@@ -28,8 +28,8 @@ Page {
 
     // Сюда придёт клик по любому листу меню
     function openModule(node) {
-        console.log("Нажато:", node.name, node.dll_name, node.func_name)
-        // дальше: загрузка модуля по node.dll_name / node.func_name
+        //console.log("Нажато:", node.name, node.dll_name, node.func_name)
+
     }
 
     // Верхняя панель

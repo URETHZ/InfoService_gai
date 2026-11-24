@@ -46,8 +46,10 @@ qt_add_qml_module(appGai
         src/config/appSettings.cpp
         src/server/databaseWorker.cpp
         src/server/databaseWorker.h
-        src/config/libsLoader.cpp
+        # src/config/libsLoader.cpp
         src/config/libsLoader.h
+        src/config/libsLoader.cpp
+        src/include/IDictionaryBackend.h
         QML_FILES
         qml/MenuNode.qml
         qml/StyledMenuItem.qml
