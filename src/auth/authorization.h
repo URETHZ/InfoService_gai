@@ -38,6 +38,8 @@ public:
 
     Q_INVOKABLE AuthStatus authorize(const QString &login, const QString &password);
 
+    int getRightsToModule(int moduleNumber);
+
     Q_INVOKABLE bool haveRightsToModule(int moduleNumber, int type); // 1 - r , 2 - w, 4 - e, 8 - d
 
     Q_INVOKABLE void initConnectionAsync(const QString &ip, int port);

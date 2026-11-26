@@ -34,8 +34,11 @@ Authorization::AuthStatus Authorization::authorize(const QString &password, cons
 
 bool Authorization::haveRightsToModule(int moduleNumber, int type)
 {
-    int rights = userRights.value(moduleNumber);
+    int rights = userRights.value(moduleNumber, 0);
     return (rights & type) != 0;
+}
+int Authorization::getRightsToModule(int moduleNumber) {
+    return userRights.value(moduleNumber, 0);
 }
 
 // Конструктор для инициализации потоков и сигналов

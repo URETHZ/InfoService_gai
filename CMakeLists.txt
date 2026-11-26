@@ -20,6 +20,19 @@ set(QML_SOURCES
     qml/General.qml
     qml/ChangePasswordFrame.qml
     qml/SettingsAuthFrame.qml
+    qml/modules/documents/DtpForm.qml
+    qml/modules/documents/MileageReportPage.qml
+    qml/modules/documents/OverdueInspectionPage.qml
+    qml/modules/documents/StolenCarsPage.qml
+    qml/modules/documents/RightHandCarsPage.qml
+    qml/modules/about/AboutPage.qml
+    qml/modules/other/SettingsPage.qml
+    qml/modules/about/HelpPage.qml
+    qml/modules/other/ChangePasswordPage.qml
+    qml/modules/DefaultPage.qml
+    qml/MenuNode.qml
+    qml/StyledMenuItem.qml
+    qml/modules/dict/DictionaryPage.qml
 )
 
 file(GLOB IMAGE_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -46,24 +59,12 @@ qt_add_qml_module(appGai
         src/config/appSettings.cpp
         src/server/databaseWorker.cpp
         src/server/databaseWorker.h
-        # src/config/libsLoader.cpp
         src/config/libsLoader.h
         src/config/libsLoader.cpp
         src/include/IDictionaryBackend.h
-        QML_FILES
-        qml/MenuNode.qml
-        qml/StyledMenuItem.qml
-        qml/modules/dict/DictionaryPage.qml
-        QML_FILES qml/modules/documents/DtpForm.qml
-        QML_FILES qml/modules/documents/MileageReportPage.qml
-        QML_FILES qml/modules/documents/OverdueInspectionPage.qml
-        QML_FILES qml/modules/documents/StolenCarsPage.qml
-        QML_FILES qml/modules/documents/RightHandCarsPage.qml
-        QML_FILES qml/modules/about/AboutPage.qml
-        QML_FILES qml/modules/other/SettingsPage.qml
-        QML_FILES qml/modules/about/HelpPage.qml
-        QML_FILES qml/modules/other/ChangePasswordPage.qml
-        QML_FILES qml/modules/DefaultPage.qml
+        src/include/moduleAPI.h
+        SOURCES libs/dicts/towns.cpp
+        SOURCES libs/docs/any.cpp
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -101,6 +102,7 @@ target_include_directories(appGai PRIVATE
     src/lib
     src/parse
     src/config
+    src/include
 )
 
 install(TARGETS appGai

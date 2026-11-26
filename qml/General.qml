@@ -28,8 +28,12 @@ Page {
 
     // Сюда придёт клик по любому листу меню
     function openModule(node) {
-        //console.log("Нажато:", node.name, node.dll_name, node.func_name)
-
+        if(LibsLoader.loadModule(node.dll_name, node.func_name, node.menu_id)){
+            LibsLoader.runModuleFunction();
+        }
+        else{
+            errorText.text = "● модуль не найден."
+        }
     }
 
     // Верхняя панель
@@ -204,11 +208,10 @@ Page {
             color: "#212121"
         }
         Text {
-            id: example2
+            id: errorText
             anchors.centerIn: parent
             font.pixelSize: 16
-            text: qsTr("тут будут статусы")
-            color: "white"
+            color: "red"
         }
     }
 
