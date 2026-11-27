@@ -65,6 +65,7 @@ qt_add_qml_module(appGai
         src/include/moduleAPI.h
         SOURCES libs/dicts/towns.cpp
         SOURCES libs/docs/any.cpp
+        SOURCES libs/dicts/tableModel_Dictionary.h
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -103,6 +104,8 @@ target_include_directories(appGai PRIVATE
     src/parse
     src/config
     src/include
+    libs
+    libs/dicts
 )
 
 install(TARGETS appGai

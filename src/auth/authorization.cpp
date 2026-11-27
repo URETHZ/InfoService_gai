@@ -78,7 +78,6 @@ Authorization::~Authorization() {
     m_dbThread->quit();
     m_dbThread->wait();
 }
-
 // Устнановка соединеня с БД для окна авторизации
 
 void Authorization::initConnectionAsync(const QString &ip, int port) {
