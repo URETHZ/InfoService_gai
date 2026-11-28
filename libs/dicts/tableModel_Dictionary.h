@@ -28,13 +28,13 @@ public:
         // Если QML просит отображаемый текст
         if (role == Qt::DisplayRole) {
             QString header = m_headers.at(index.column());
-            return m_data.at(index.row()).value(header);
+            return m_data.at(index.row()).toMap().value(header);
         }
 
         // Если QML просит данные по имени роли (например, model.name)
         if (role == Qt::UserRole) {
             QString header = m_headers.at(index.column());
-            return m_data.at(index.row()).value(header);
+            return m_data.at(index.row()).toMap().value(header);
         }
         return QVariant();
     }

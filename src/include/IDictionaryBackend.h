@@ -6,7 +6,7 @@
 #include <QHash>
 #include <QtQml/qqmlregistration.h>
 #include <QAbstractItemModel>
-#include "moduleAPI.h"A
+#include "moduleAPI.h"
 
 // контракт для .dll модулей, реализущих работу со справочниками
 class IDictionaryBackend : public QObject {
@@ -18,8 +18,8 @@ class IDictionaryBackend : public QObject {
     Q_PROPERTY(QString lastError READ lastError NOTIFY errorOccurred)
 
 public:
-    Context getContext() { return context; }
-    IDictionaryBackend(Context ctx) {context=ctx;}
+    Context& getContext() { return context; }
+    IDictionaryBackend(Context ctx) { context=ctx; }
     virtual QAbstractItemModel *model() const = 0;
     bool canAdd() const {
         return (context.userRights & 2 ) != 0;
@@ -30,7 +30,7 @@ public:
     bool canDelete() const {
         return (context.userRights & 8 ) != 0;
     }
-    void load() = 0;
+    virtual void loadData() = 0;
 
     Q_INVOKABLE virtual bool addRow(const QVariantMap &values) = 0;
     Q_INVOKABLE virtual bool editRow(int row, const QVariantMap &values) = 0;

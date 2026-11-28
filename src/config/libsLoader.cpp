@@ -13,11 +13,13 @@ namespace {
     void cancelRequestsImpl(void *app, void *user) {
         // Отмена
     }
-    }
+}
 
-    LibsLoader&  LibsLoader::instance() {
-        static LibsLoader loader;
-        return loader;
+
+
+LibsLoader& LibsLoader::instance() {
+    static LibsLoader loader;
+    return loader;
 }
 
 LibsLoader*  LibsLoader::create(QQmlEngine *, QJSEngine *) {

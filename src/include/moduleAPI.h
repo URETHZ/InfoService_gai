@@ -17,15 +17,15 @@ using ResultFn = void (*)(void *user, int requestId,
 using ExecuteQueryFn = int (*)(void *app, const char *sql,
                                const QVariantMap *params, ResultFn callback, void *user);
 
-using CancelRequestsFn = void (*)(void *app);
+using CancelRequestsFn = void (*)(void *app, void* user);
 
 struct Context {
     int userRights;
     // Для запроса
     int (*executeQuery)(void *app, const char *sql, const QVariantMap *params,
-                        ResultFn callback);
+                        ResultFn callback,  void *user);
     // Для отмены
-    void (*cancelRequests)(void *app);
+    void (*cancelRequests)(void *app, void* user);
 };
 
 

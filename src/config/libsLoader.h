@@ -28,7 +28,7 @@ public:
 signals:
     void errorChanged();
 private:
-    explicit LibsLoader(QObject *parent = nullptr);
+    explicit LibsLoader(QObject *parent = nullptr) : QObject(parent) {}
     QHash<QString,QLibrary*> loaded;
     QString libsPath = QDir(QCoreApplication::applicationDirPath()).filePath("libs");
     QString m_error = "";
